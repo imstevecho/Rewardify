@@ -1,0 +1,39 @@
+// General Project Guidelines
+- This project uses Ruby on Rails (version 8.0.2) with Ruby 3.2.0.
+- Follow MVC architecture strictly.
+- Use SQLite as the database.
+- Try to use the latest standard and style in your implementation.
+
+// Naming Conventions
+- Use snake_case for variable and method names.
+- Use PascalCase for class names (e.g., `UserController`).
+- All migrations should be named with a clear purpose (e.g., `create_users_table`).
+
+// Code Formatting
+- Indent with 2 spaces.
+- Use single quotes for strings unless interpolation is required.
+- Avoid inline comments; use block comments where necessary.
+
+// Testing Guidelines
+- Write RSpec tests for all models, controllers, and services.
+- Use FactoryBot for test data generation.
+
+// Security Practices
+- Sanitize all user inputs using Rails helpers (e.g., `sanitize`, `html_safe`).
+- Use strong parameters in controllers.
+- Avoid hardcoding sensitive information; use environment variables instead.
+
+// Deprecated Patterns
+- Do not use `before_filter`; replace it with `before_action`.
+- Avoid using global variables; prefer instance variables or constants.
+
+// Libraries and Gems
+- Preferred gems: Devise (for authentication), Pundit (for authorization), Sidekiq (for background jobs).
+
+// Frontend Guidelines
+- Use React as the frontend framework.
+- Utilize functional components and hooks for state management.
+- Adhere to component-based architecture and maintain modularity.
+- Prefer modern JavaScript standards (ES6+).
+- Use Create React App or a similar tool for project scaffolding.
+- Ensure consistency in API integration with the Rails backend.

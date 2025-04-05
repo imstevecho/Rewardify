@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Rewardify - Rewards Redemption App</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+
+    <!-- Add React via CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+
+    <%= javascript_include_tag "application" %>
+
+    <!-- React component script -->
+    <script type="text/babel">
+      const App = () => {
+        const [userId] = React.useState(1);
+        const [points, setPoints] = React.useState(null);
+        const [rewards, setRewards] = React.useState([]);
+        const [redemptions, setRedemptions] = React.useState([]);
+        const [loading, setLoading] = React.useState(true);
+        const [error, setError] = React.useState(null);
+        const [activeTab, setActiveTab] = React.useState('rewards');
+
+        React.useEffect(() => {
+          // Fetch user points
+          fetch(`/api/v1/users/${userId}/points`)
+            .then(response => {
+              if (!response.ok) throw new Error('Failed to fetch points');
+              return response.json();
+            })
+            .then(data => {
+              setPoints(data.points);
+            })
+            .catch(err => {
+              console.error(err);
+              setError('Failed to load points');
+            });
+
+          // Fetch rewards
+          fetch('/api/v1/rewards')
+            .then(response => {
+              if (!response.ok) throw new Error('Failed to fetch rewards');
+              return response.json();
+            })
+            .then(data => {
+              setRewards(data);
+            })
+            .catch(err => {
+              console.error(err);
+              setError('Failed to load rewards');
+            });
+
+          // Fetch redemption history
+          fetch(`/api/v1/users/${userId}/redemptions`)
+            .then(response => {
+              if (!response.ok) throw new Error('Failed to fetch redemptions');
+              return response.json();
+            })
+            .then(data => {
+              setRedemptions(data);
+              setLoading(false);
+            })
+            .catch(err => {
+              console.error(err);
+              setError('Failed to load redemption history');
+              setLoading(false);
+            });
+        }, [userId]);
+
+        const handleRedeem = async (rewardId) => {
+          try {
+            const response = await fetch(`/api/v1/users/${userId}/redemptions`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-Token': document.querySelector('[name="csrf-token"]').content
+              },
+              body: JSON.stringify({ reward_id: rewardId })
+            });
+
+            if (!response.ok) throw new Error('Failed to redeem reward');
+
+            const data = await response.json();
+
+            // Update points
+            setPoints(data.remaining_points);
+
+            // Refresh redemption history
+            const historyResponse = await fetch(`/api/v1/users/${userId}/redemptions`);
+            if (!historyResponse.ok) throw new Error('Failed to refresh history');
+
+            const historyData = await historyResponse.json();
+            setRedemptions(historyData);
+
+            alert('Reward redeemed successfully!');
+          } catch (error) {
+            console.error(error);
+            alert('Failed to redeem reward. ' + error.message);
+          }
+        };
+
+        if (loading) {
+          return <div className="loading">Loading Rewardify app...</div>;
+        }
+
+        if (error) {
+          return <div className="error">Error: {error}</div>;
+        }
+
+        const formatDate = (dateString) => {
+          const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+          return new Date(dateString).toLocaleDateString(undefined, options);
+        };
+
+        return (
+          <div className="rewards-app">
+            <header className="app-header">
+              <h1>Rewardify</h1>
+              <div className="user-points-container">
+                <div className="user-points">
+                  <h2>Your Point Balance</h2>
+                  <div className="points-value">{points} points</div>
+                </div>
+              </div>
+            </header>
+
+            <nav className="app-nav">
+              <ul>
+                <li>
+                  <button
+                    onClick={() => setActiveTab('rewards')}
+                    className={activeTab === 'rewards' ? 'active' : ''}
+                    type="button"
+                  >
+                    Available Rewards
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setActiveTab('history')}
+                    className={activeTab === 'history' ? 'active' : ''}
+                    type="button"
+                  >
+                    Redemption History
+                  </button>
+                </li>
+              </ul>
+            </nav>
+
+            <main className="app-content">
+              {activeTab === 'rewards' && (
+                <div className="rewards-list">
+                  <h2>Available Rewards</h2>
+                  <div className="rewards-grid">
+                    {rewards.map(reward => (
+                      <div key={reward.id} className="reward-item">
+                        <h3>{reward.name}</h3>
+                        <p className="description">{reward.description}</p>
+                        <p className="points-required">{reward.points_required} points</p>
+                        <button
+                          onClick={() => handleRedeem(reward.id)}
+                          disabled={points < reward.points_required}
+                          className="redeem-button"
+                          type="button"
+                        >
+                          {points < reward.points_required ? 'Not enough points' : 'Redeem'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'history' && (
+                <div className="redemption-history">
+                  <h2>Redemption History</h2>
+                  {redemptions.length === 0 ? (
+                    <div className="no-redemptions">You haven't redeemed any rewards yet.</div>
+                  ) : (
+                    <div className="redemption-list">
+                      {redemptions.map(redemption => (
+                        <div key={redemption.id} className="redemption-item">
+                          <h3>{redemption.reward.name}</h3>
+                          <p className="description">{redemption.reward.description}</p>
+                          <p className="points">
+                            <strong>Points spent:</strong> {redemption.reward.points_required}
+                          </p>
+                          <p className="redeemed-at">
+                            <strong>Redeemed:</strong> {formatDate(redemption.redeemed_at)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </main>
+
+            <footer className="app-footer">
+              <p>&copy; 2025 Rewardify - All rights reserved</p>
+            </footer>
+          </div>
+        );
+      };
+
+      // Render the App component
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
