@@ -51,10 +51,14 @@ const App = () => {
           <RewardsList
             userId={userId}
             onRedemption={handleRedemption}
+            key={`rewards-${pointsUpdated}`}
           />
         )}
         {activeTab === 'history' && (
-          <RedemptionHistory userId={userId} />
+          <RedemptionHistory
+            userId={userId}
+            key={`history-${pointsUpdated}`}
+          />
         )}
       </main>
 

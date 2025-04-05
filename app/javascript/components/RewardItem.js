@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import Modal from './Modal.jsx';
 
-const RewardItem = ({ reward, userId, onRedemption }) => {
+const RewardItem = ({ reward, userId, userPoints, onRedemption }) => {
   const [redeeming, setRedeeming] = useState(false);
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Check if user has enough points to redeem this reward
+  const hasEnoughPoints = userPoints >= reward.points_required;
 
   const initiateRedeem = () => {
     setShowConfirmModal(true);
@@ -68,11 +71,11 @@ const RewardItem = ({ reward, userId, onRedemption }) => {
 
       <button
         onClick={initiateRedeem}
-        disabled={redeeming}
+        disabled={redeeming || !hasEnoughPoints}
         className="redeem-button"
         type="button"
       >
-        {redeeming ? 'Redeeming...' : 'Redeem'}
+        {redeeming ? 'Redeeming...' : hasEnoughPoints ? 'Redeem' : 'Not enough points'}
       </button>
 
       {/* Confirmation Modal */}

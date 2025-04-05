@@ -1,20 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import RewardItem from './RewardItem';
 
 const RewardsList = ({ userId, onRedemption }) => {
   const [rewards, setRewards] = useState([]);
+  const [userPoints, setUserPoints] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch rewards and initial user points
   useEffect(() => {
-    const fetchRewards = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/v1/rewards');
-        if (!response.ok) {
+        // Fetch rewards
+        const rewardsResponse = await fetch('/api/v1/rewards');
+        if (!rewardsResponse.ok) {
           throw new Error('Failed to fetch rewards');
         }
-        const data = await response.json();
-        setRewards(data);
+        const rewardsData = await rewardsResponse.json();
+        setRewards(rewardsData);
+
+        // Fetch user points
+        const pointsResponse = await fetch(`/api/v1/users/${userId}/points`);
+        if (!pointsResponse.ok) {
+          throw new Error('Failed to fetch user points');
+        }
+        const pointsData = await pointsResponse.json();
+        setUserPoints(pointsData.points);
+
         setLoading(false);
       } catch (err) {
         setError(err.message);
@@ -22,8 +34,28 @@ const RewardsList = ({ userId, onRedemption }) => {
       }
     };
 
-    fetchRewards();
-  }, []);
+    fetchData();
+  }, [userId]);
+
+  // Function to fetch updated points
+  const fetchUserPoints = useCallback(async () => {
+    if (loading) return;
+
+    try {
+      const response = await fetch(`/api/v1/users/${userId}/points`);
+      if (response.ok) {
+        const data = await response.json();
+        setUserPoints(data.points);
+      }
+    } catch (error) {
+      console.error('Failed to update points:', error);
+    }
+  }, [userId, loading]);
+
+  // Update points when onRedemption changes
+  useEffect(() => {
+    fetchUserPoints();
+  }, [fetchUserPoints, onRedemption]);
 
   if (loading) {
     return <div className="loading">Loading rewards...</div>;
@@ -46,7 +78,11 @@ const RewardsList = ({ userId, onRedemption }) => {
             key={reward.id}
             reward={reward}
             userId={userId}
-            onRedemption={onRedemption}
+            userPoints={userPoints}
+            onRedemption={() => {
+              fetchUserPoints();
+              if (onRedemption) onRedemption();
+            }}
           />
         ))}
       </div>
