@@ -1,0 +1,16 @@
+{
+  "name": "app",
+  "private": true,
+  "dependencies": {
+    "@hotwired/stimulus": "^3.2.2",
+    "@hotwired/turbo-rails": "^8.0.0-beta.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "build": "esbuild app/javascript/*.* --bundle --sourcemap --format=esm --loader:.js=jsx --loader:.jsx=jsx --outdir=app/assets/builds --public-path=/assets"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.0"
+  }
+}

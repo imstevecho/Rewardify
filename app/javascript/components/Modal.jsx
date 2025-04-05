@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 const Modal = ({ isOpen, title, message, onConfirm, onCancel }) => {
   // Prevent scrolling when modal is open
@@ -16,7 +17,8 @@ const Modal = ({ isOpen, title, message, onConfirm, onCancel }) => {
 
   if (!isOpen) return null;
 
-  return (
+  // Create portal to render modal at the document body level
+  return createPortal(
     <div className="modal-overlay">
       <div className="modal-container">
         <div className="modal-header">
@@ -44,7 +46,8 @@ const Modal = ({ isOpen, title, message, onConfirm, onCancel }) => {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
