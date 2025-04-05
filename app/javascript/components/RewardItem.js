@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
+import Modal from './Modal';
 
 const RewardItem = ({ reward, userId, onRedemption }) => {
   const [redeeming, setRedeeming] = useState(false);
   const [message, setMessage] = useState(null);
   const [messageType, setMessageType] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleRedeem = async () => {
+  const initiateRedeem = () => {
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmRedeem = async () => {
+    setShowConfirmModal(false);
     setRedeeming(true);
     setMessage(null);
 
@@ -24,6 +32,7 @@ const RewardItem = ({ reward, userId, onRedemption }) => {
       if (response.ok) {
         setMessageType('success');
         setMessage('Reward redeemed successfully!');
+        setShowSuccessModal(true);
         if (onRedemption) {
           onRedemption(data.remaining_points);
         }
@@ -39,24 +48,49 @@ const RewardItem = ({ reward, userId, onRedemption }) => {
     }
   };
 
+  const handleCancelRedeem = () => {
+    setShowConfirmModal(false);
+  };
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
   return (
     <div className="reward-item">
       <h3>{reward.name}</h3>
       <p className="description">{reward.description}</p>
       <p className="points-required">{reward.points_required} points</p>
 
-      {message && (
+      {message && messageType === 'error' && (
         <div className={`message ${messageType}`}>{message}</div>
       )}
 
       <button
-        onClick={handleRedeem}
+        onClick={initiateRedeem}
         disabled={redeeming}
         className="redeem-button"
         type="button"
       >
         {redeeming ? 'Redeeming...' : 'Redeem'}
       </button>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={showConfirmModal}
+        title="Confirm Redemption"
+        message={`Are you sure you want to redeem ${reward.name} for ${reward.points_required} points?`}
+        onConfirm={handleConfirmRedeem}
+        onCancel={handleCancelRedeem}
+      />
+
+      {/* Success Modal */}
+      <Modal
+        isOpen={showSuccessModal}
+        title="Reward Redeemed"
+        message="Reward redeemed successfully!"
+        onConfirm={handleCloseSuccessModal}
+      />
     </div>
   );
 };

@@ -11,16 +11,27 @@ class User < ApplicationRecord
   end
 
   def redeem_reward(reward)
-    return false unless can_redeem?(reward)
+    # Check if user has enough points
+    if self.points < reward.points_required
+      Rails.logger.info("Redemption failed: User has #{self.points} points, but #{reward.points_required} are required")
+      return false
+    end
 
+    # Check if reward is available
+    unless reward.available
+      Rails.logger.info("Redemption failed: Reward is not available")
+      return false
+    end
+
+    # Proceed with redemption
     ActiveRecord::Base.transaction do
-      self.points -= reward.points_required
-      redemptions.create!(reward: reward, redeemed_at: Time.current)
-      save!
+      self.redemptions.create!(reward: reward, redeemed_at: Time.current)
+      self.update!(points: self.points - reward.points_required)
     end
 
     true
-  rescue ActiveRecord::RecordInvalid
+  rescue => e
+    Rails.logger.error("Redemption error: #{e.message}")
     false
   end
 end

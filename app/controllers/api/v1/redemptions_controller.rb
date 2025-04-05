@@ -4,6 +4,9 @@ class Api::V1::RedemptionsController < Api::V1::BaseController
     user = User.find(params[:user_id])
     reward = Reward.find(params[:reward_id])
 
+    # Add logging to debug the issue
+    Rails.logger.info("Attempting to redeem reward: #{reward.name}, Available: #{reward.available}")
+
     if !reward.available
       render json: { error: 'Reward is not available for redemption' }, status: :unprocessable_entity
       return
@@ -30,6 +33,18 @@ class Api::V1::RedemptionsController < Api::V1::BaseController
     render json: redemptions.map { |redemption| redemption_to_json(redemption) }
   end
 
+  # GET /api/v1/users/:user_id/points
+  def points_balance
+    user = User.find(params[:user_id])
+    render json: { points: user.points }
+  end
+
+  # GET /api/v1/rewards
+  def available_rewards
+    rewards = Reward.where(available: true)
+    render json: rewards.map { |reward| reward_to_json(reward) }
+  end
+
   private
 
   def redemption_to_json(redemption)
@@ -42,6 +57,16 @@ class Api::V1::RedemptionsController < Api::V1::BaseController
         points_required: redemption.reward.points_required
       },
       redeemed_at: redemption.redeemed_at.iso8601
+    }
+  end
+
+  def reward_to_json(reward)
+    {
+      id: reward.id,
+      name: reward.name,
+      description: reward.description,
+      points_required: reward.points_required,
+      available: reward.available
     }
   end
 end

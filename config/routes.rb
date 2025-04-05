@@ -16,6 +16,7 @@ Rails.application.routes.draw do
 
         resources :redemptions, only: [:index, :create]
       end
+      get 'rewards', to: 'redemptions#available_rewards'
     end
   end
 
