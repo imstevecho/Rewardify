@@ -10,15 +10,20 @@ Rails.application.routes.draw do
       # Direct routes for controller tests
       resources :redemptions, only: [:index, :create]
 
-      # /rewards and /rewards/:id endpoints
+      # /rewards endpoints
       resources :rewards, only: [:index, :show] do
+        collection do
+          # GET /rewards/premium
+          get :premium
+        end
+
         member do
           # /rewards/:id/redeem endpoint
           post :redeem, to: 'redemptions#redeem'
         end
       end
 
-      # /users/:id/balance and /users/:id/redemptions endpoints
+      # /users/:id endpoints
       resources :users, only: [] do
         member do
           # GET /users/:id/balance
@@ -27,6 +32,8 @@ Rails.application.routes.draw do
           get :points
           # GET /users/:id/redemptions
           resources :redemptions, only: [:index, :create]
+          # GET /users/:id/rewards/affordable
+          get 'rewards/affordable', to: 'rewards#affordable'
         end
       end
     end
