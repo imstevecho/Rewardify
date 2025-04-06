@@ -9,7 +9,9 @@ RSpec.describe 'Rewards Redeem API', type: :request do
 
     context 'when request is valid' do
       before do
-        post "/api/v1/rewards/#{reward.id}/redeem", params: { user_id: user.id }
+        post "/api/v1/rewards/#{reward.id}/redeem",
+             params: { user_id: user.id }.to_json,
+             headers: { 'CONTENT_TYPE' => 'application/json' }
       end
 
       it 'returns status code 201 (created)' do
@@ -32,7 +34,9 @@ RSpec.describe 'Rewards Redeem API', type: :request do
 
     context 'when reward is not available' do
       before do
-        post "/api/v1/rewards/#{unavailable_reward.id}/redeem", params: { user_id: user.id }
+        post "/api/v1/rewards/#{unavailable_reward.id}/redeem",
+             params: { user_id: user.id }.to_json,
+             headers: { 'CONTENT_TYPE' => 'application/json' }
       end
 
       it 'returns status code 422 (unprocessable entity)' do
@@ -51,7 +55,9 @@ RSpec.describe 'Rewards Redeem API', type: :request do
 
     context 'when user has insufficient points' do
       before do
-        post "/api/v1/rewards/#{expensive_reward.id}/redeem", params: { user_id: user.id }
+        post "/api/v1/rewards/#{expensive_reward.id}/redeem",
+             params: { user_id: user.id }.to_json,
+             headers: { 'CONTENT_TYPE' => 'application/json' }
       end
 
       it 'returns status code 422 (unprocessable entity)' do
@@ -70,7 +76,9 @@ RSpec.describe 'Rewards Redeem API', type: :request do
 
     context 'when user_id is missing' do
       before do
-        post "/api/v1/rewards/#{reward.id}/redeem"
+        post "/api/v1/rewards/#{reward.id}/redeem",
+             params: {}.to_json,
+             headers: { 'CONTENT_TYPE' => 'application/json' }
       end
 
       it 'returns status code 400 (bad request)' do

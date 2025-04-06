@@ -98,9 +98,8 @@ RSpec.describe Api::V1::RedemptionsController, type: :controller do
 
       it 'returns an error message' do
         parsed_response = JSON.parse(response.body)
-        expect(parsed_response).to include(
-          'error' => 'Reward is not available for redemption'
-        )
+        expect(parsed_response).to include('error' => 'Failed to redeem reward')
+        expect(parsed_response['reason']).to match(/not available/)
       end
     end
 

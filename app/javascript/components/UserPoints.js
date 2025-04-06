@@ -8,7 +8,7 @@ const UserPoints = ({ userId }) => {
   useEffect(() => {
     const fetchPoints = async () => {
       try {
-        const response = await fetch(`/api/v1/users/${userId}/points`);
+        const response = await fetch(`/api/v1/users/${userId}/balance`);
         if (!response.ok) {
           throw new Error('Failed to fetch points');
         }

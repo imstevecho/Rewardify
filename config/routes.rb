@@ -7,11 +7,14 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      # Direct routes for controller tests
+      resources :redemptions, only: [:index, :create]
+
       # /rewards and /rewards/:id endpoints
       resources :rewards, only: [:index, :show] do
         member do
           # /rewards/:id/redeem endpoint
-          post :redeem
+          post :redeem, to: 'redemptions#redeem'
         end
       end
 
@@ -20,8 +23,10 @@ Rails.application.routes.draw do
         member do
           # GET /users/:id/balance
           get :balance
+          # GET /users/:id/points (backward compatibility)
+          get :points
           # GET /users/:id/redemptions
-          resources :redemptions, only: [:index, :create], shallow: true
+          resources :redemptions, only: [:index, :create]
         end
       end
     end

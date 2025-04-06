@@ -24,6 +24,7 @@ The application provides the following RESTful API endpoints:
 ### Users
 
 * **GET /api/v1/users/:id/balance** - Get a user's current points balance
+* **GET /api/v1/users/:id/points** - (Legacy/backward compatibility) Get a user's current points balance
 
 ### Rewards
 
@@ -77,6 +78,7 @@ The application follows a standard Rails MVC architecture with some additional p
 * **Service Objects**: Business logic is isolated in service classes to keep controllers and models clean and focused on their primary responsibilities.
 * **Serializers**: Response formatting is separated into serializer classes to ensure consistent JSON structures.
 * **Transactional Operations**: All critical operations (like redeeming rewards) are performed within transactions to ensure data integrity.
+* **API Consistency**: The API follows RESTful conventions with consistent endpoint naming. Legacy endpoints are maintained for backward compatibility.
 
 ## Assumptions
 
@@ -90,6 +92,7 @@ The application follows a standard Rails MVC architecture with some additional p
 * **SQLite vs PostgreSQL**: Used SQLite for simplicity and ease of setup, though a production app would likely use PostgreSQL for better concurrency and feature support.
 * **Simple Serialization**: Used custom serializers rather than introducing dependencies like jsonapi-serializer to keep the codebase lean.
 * **Service Layer**: Added a service layer for business logic even though it adds some complexity because it improves maintainability and testability.
+* **Backward Compatibility**: Maintained legacy endpoints (/points) alongside new endpoints (/balance) to ensure existing frontend code continues to work.
 
 ## Future Improvements
 
@@ -102,6 +105,7 @@ Given more time, the following improvements could be implemented:
 * **Performance Optimization**: Optimize redemption queries with joining and indexing
 * **Background Jobs**: Process redemptions asynchronously for better user experience during peak loads
 * **Swagger/OpenAPI Documentation**: Generate API documentation using OpenAPI specifications
+* **Frontend Refactoring**: Update the frontend to align with the latest backend API structure
 
 ## Testing
 
