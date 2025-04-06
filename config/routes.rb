@@ -7,16 +7,23 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      resources :rewards, only: [:index, :show]
+      # /rewards and /rewards/:id endpoints
+      resources :rewards, only: [:index, :show] do
+        member do
+          # /rewards/:id/redeem endpoint
+          post :redeem
+        end
+      end
 
+      # /users/:id/balance and /users/:id/redemptions endpoints
       resources :users, only: [] do
         member do
-          get :points
+          # GET /users/:id/balance
+          get :balance
+          # GET /users/:id/redemptions
+          resources :redemptions, only: [:index, :create], shallow: true
         end
-
-        resources :redemptions, only: [:index, :create]
       end
-      get 'rewards', to: 'redemptions#available_rewards'
     end
   end
 

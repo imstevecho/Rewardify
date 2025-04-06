@@ -2,13 +2,13 @@ class Api::V1::RewardsController < Api::V1::BaseController
   # GET /api/v1/rewards
   def index
     rewards = Reward.available
-    render json: rewards.map { |reward| reward_to_json(reward) }
+    render json: RewardSerializer.render_collection(rewards)
   end
 
   # GET /api/v1/rewards/:id
   def show
     reward = Reward.find(params[:id])
-    render json: reward_to_json(reward)
+    render json: RewardSerializer.render(reward)
   end
 
   private

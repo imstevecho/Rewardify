@@ -32,4 +32,21 @@ RSpec.describe Api::V1::UsersController, type: :controller do
       end
     end
   end
+
+  describe 'GET #balance' do
+    let!(:user) { create(:user, points: 1000) }
+
+    before do
+      get :balance, params: { id: user.id }
+    end
+
+    it 'returns http success' do
+      expect(response).to have_http_status(:success)
+    end
+
+    it 'returns the user points as JSON' do
+      json_response = JSON.parse(response.body)
+      expect(json_response['points']).to eq(1000)
+    end
+  end
 end

@@ -17,6 +17,24 @@ Rewardify is a web application that allows users to view their reward points bal
 * View redemption history
 * RESTful API for all functionality
 
+## API Endpoints
+
+The application provides the following RESTful API endpoints:
+
+### Users
+
+* **GET /api/v1/users/:id/balance** - Get a user's current points balance
+
+### Rewards
+
+* **GET /api/v1/rewards** - Get a list of available rewards
+* **GET /api/v1/rewards/:id** - Get details of a specific reward
+* **POST /api/v1/rewards/:id/redeem** - Redeem a reward (requires `user_id` in request body)
+
+### Redemptions
+
+* **GET /api/v1/users/:id/redemptions** - Get a user's redemption history
+
 ## Installation
 
 ### Prerequisites
@@ -52,29 +70,38 @@ Rewardify is a web application that allows users to view their reward points bal
 
 5. Visit `http://localhost:3000` in your browser
 
-## API Endpoints
+## Design Decisions & Architecture
 
-### Users
+The application follows a standard Rails MVC architecture with some additional patterns:
 
-* **GET /api/v1/users/:id/points** - Get a user's current points balance
+* **Service Objects**: Business logic is isolated in service classes to keep controllers and models clean and focused on their primary responsibilities.
+* **Serializers**: Response formatting is separated into serializer classes to ensure consistent JSON structures.
+* **Transactional Operations**: All critical operations (like redeeming rewards) are performed within transactions to ensure data integrity.
 
-### Rewards
+## Assumptions
 
-* **GET /api/v1/rewards** - Get a list of available rewards
-* **GET /api/v1/rewards/:id** - Get details of a specific reward
+* Users are pre-authenticated (authentication is outside the scope of this implementation)
+* Points are a non-negative integer value
+* Users cannot redeem rewards if they don't have sufficient points
+* Rewards can be marked as unavailable and cannot be redeemed in that state
 
-### Redemptions
+## Tradeoffs
 
-* **POST /api/v1/users/:user_id/redemptions** - Redeem a reward (requires `reward_id` in request body)
-* **GET /api/v1/users/:user_id/redemptions** - Get a user's redemption history
+* **SQLite vs PostgreSQL**: Used SQLite for simplicity and ease of setup, though a production app would likely use PostgreSQL for better concurrency and feature support.
+* **Simple Serialization**: Used custom serializers rather than introducing dependencies like jsonapi-serializer to keep the codebase lean.
+* **Service Layer**: Added a service layer for business logic even though it adds some complexity because it improves maintainability and testability.
 
-## Database Structure
+## Future Improvements
 
-The application has three main models:
+Given more time, the following improvements could be implemented:
 
-1. **User** - Stores user information and points balance
-2. **Reward** - Stores information about available rewards
-3. **Redemption** - Stores records of reward redemptions
+* **Caching**: Add Redis caching for frequently accessed data like available rewards and user point balances
+* **API Versioning**: Implement formal versioning in the API for better future compatibility
+* **Pagination**: Add pagination to lists of rewards and redemption history
+* **Enhanced Error Handling**: Add more specific error types and status codes for various failure scenarios
+* **Performance Optimization**: Optimize redemption queries with joining and indexing
+* **Background Jobs**: Process redemptions asynchronously for better user experience during peak loads
+* **Swagger/OpenAPI Documentation**: Generate API documentation using OpenAPI specifications
 
 ## Testing
 
@@ -82,6 +109,12 @@ Run tests with:
 ```
 bundle exec rspec
 ```
+
+The test suite includes:
+* Model validations and associations
+* Service layer business logic
+* Controller request/response cycles
+* Edge cases such as insufficient points and unavailable rewards
 
 ## Demo Data
 

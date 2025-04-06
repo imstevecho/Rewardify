@@ -1,18 +1,14 @@
 class Api::V1::RedemptionsController < Api::V1::BaseController
   # POST /api/v1/users/:user_id/redemptions
+  # POST /api/v1/rewards/:id/redeem (with user_id in params)
   def create
     user = User.find(params[:user_id])
     reward = Reward.find(params[:reward_id])
 
-    # Add logging to debug the issue
-    Rails.logger.info("Attempting to redeem reward: #{reward.name}, Available: #{reward.available}")
-
-    if !reward.available
-      render json: { error: 'Reward is not available for redemption' }, status: :unprocessable_entity
-      return
-    end
-
-    if user.redeem_reward(reward)
+    service = RewardRedemptionService.new(user, reward)
+    if service.redeem
+      # Find the most recent redemption for this user and reward
+      redemption = user.redemptions.where(reward: reward).order(created_at: :desc).first
       render json: {
         message: 'Reward successfully redeemed',
         remaining_points: user.points
@@ -20,7 +16,7 @@ class Api::V1::RedemptionsController < Api::V1::BaseController
     else
       render json: {
         error: 'Failed to redeem reward',
-        reason: 'Insufficient points or reward unavailable'
+        reason: service.error_message
       }, status: :unprocessable_entity
     end
   end
@@ -30,43 +26,35 @@ class Api::V1::RedemptionsController < Api::V1::BaseController
     user = User.find(params[:user_id])
     redemptions = user.redemptions.ordered_by_recent.includes(:reward)
 
-    render json: redemptions.map { |redemption| redemption_to_json(redemption) }
+    render json: RedemptionSerializer.render_collection(redemptions)
   end
 
-  # GET /api/v1/users/:user_id/points
-  def points_balance
-    user = User.find(params[:user_id])
-    render json: { points: user.points }
-  end
+  # Alternative route handler for /rewards/:id/redeem
+  def redeem
+    user_id = params[:user_id]
+    reward_id = params[:id]
 
-  # GET /api/v1/rewards
-  def available_rewards
-    rewards = Reward.where(available: true)
-    render json: rewards.map { |reward| reward_to_json(reward) }
-  end
+    unless user_id
+      render json: { error: 'User ID is required' }, status: :bad_request
+      return
+    end
 
-  private
+    user = User.find(user_id)
+    reward = Reward.find(reward_id)
 
-  def redemption_to_json(redemption)
-    {
-      id: redemption.id,
-      reward: {
-        id: redemption.reward.id,
-        name: redemption.reward.name,
-        description: redemption.reward.description,
-        points_required: redemption.reward.points_required
-      },
-      redeemed_at: redemption.redeemed_at.iso8601
-    }
-  end
-
-  def reward_to_json(reward)
-    {
-      id: reward.id,
-      name: reward.name,
-      description: reward.description,
-      points_required: reward.points_required,
-      available: reward.available
-    }
+    service = RewardRedemptionService.new(user, reward)
+    if service.redeem
+      # Find the most recent redemption for this user and reward
+      redemption = user.redemptions.where(reward: reward).order(created_at: :desc).first
+      render json: {
+        message: 'Reward successfully redeemed',
+        remaining_points: user.points
+      }, status: :created
+    else
+      render json: {
+        error: 'Failed to redeem reward',
+        reason: service.error_message
+      }, status: :unprocessable_entity
+    end
   end
 end
