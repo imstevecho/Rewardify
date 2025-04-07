@@ -59,9 +59,10 @@ The API provides enriched data when appropriate context is provided:
 
 1. Clone the repo:
    ```
-   git clone https://github.com/yourusername/rewardify.git
+   git clone git@github.com:imstevecho/Rewardify.git
    cd rewardify
    ```
+   Otherwise you can extract the zip file
 
 2. Install dependencies:
    ```bash
